@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagamento — Raízes do Nordeste</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="hd"></div>
+
+  <main style="padding:1.25rem 0 3rem">
+    <div class="container" style="max-width:560px">
+
+      <div class="page-title" style="margin-bottom:1rem"><h1>Pagamento</h1></div>
+
+      <div class="order-box" style="margin-bottom:1.25rem" id="summary"></div>
+
+      <div id="step-method">
+        <div class="info-notice">O pagamento é processado por um serviço externo. Seus dados financeiros não são armazenados em nosso sistema.</div>
+        <h3 style="margin-bottom:.85rem">Forma de pagamento</h3>
+        <div id="methods"></div>
+        <div style="display:flex;gap:.75rem;margin-top:1.25rem;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="pay('ok')">Confirmar pagamento</button>
+          <button class="btn btn-secondary btn-sm" onclick="pay('fail')" style="align-self:center">Simular falha</button>
+        </div>
+        <p style="font-size:.72rem;color:var(--muted);margin-top:.4rem">"Simular falha" demonstra o tratamento de erro do serviço externo</p>
+      </div>
+
+      <div id="step-proc" class="processing-block">
+        <div class="spinner"></div>
+        <p style="font-weight:600;margin-bottom:.35rem">Processando pagamento</p>
+        <p style="font-size:.82rem;color:var(--muted)">Aguarde, não feche esta página</p>
+      </div>
+
+      <div id="step-result" class="result-block">
+        <div class="result-icon" id="r-icon"></div>
+        <h2 id="r-title" style="margin-bottom:.5rem"></h2>
+        <p id="r-msg" style="color:var(--muted);margin-bottom:1.25rem"></p>
+        <div id="r-actions"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <div id="ft"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('hd').innerHTML = mkHeader('');
+    document.getElementById('ft').innerHTML = mkFooter();
+
+    const cart = getCart();
+    const dlv  = localStorage.getItem('rn_delivery') || 'pickup';
+
+    document.getElementById('summary').innerHTML = `
+      <div class="order-row"><span>Itens</span><span>${cart.reduce((s,i)=>s+i.qty,0)} produto(s)</span></div>
+      <div class="order-row"><span>Retirada</span><span>${dlv==='totem'?'Totem':'Balcão'}</span></div>
+      <div class="order-row total"><span>Total</span><span>${fmtPrice(total())}</span></div>
+      <div class="order-row pts"><span>Pontos a ganhar</span><span>${pts()} pts</span></div>`;
+
+    let chosen = 'pix';
+    [{ id:'pix',label:'PIX',desc:'Aprovação instantânea'},
+     { id:'card',label:'Cartão',desc:'Débito ou crédito'},
+     { id:'cash',label:'Dinheiro / Ficha',desc:'Pague no balcão'}
+    ].forEach(m => {
+      const el = document.createElement('div');
+      el.className = 'pay-option' + (m.id==='pix' ? ' active' : '');
+      el.id = 'pm-' + m.id;
+      el.innerHTML = `<input type="radio" name="pay" value="${m.id}" ${m.id==='pix'?'checked':''}>
+        <div><p class="pay-label">${m.label}</p><p class="pay-desc">${m.desc}</p></div>`;
+      el.onclick = () => {
+        document.querySelectorAll('.pay-option').forEach(x => x.classList.remove('active'));
+        el.classList.add('active');
+        el.querySelector('input').checked = true;
+        chosen = m.id;
+      };
+      document.getElementById('methods').appendChild(el);
+    });
+
+    function step(id) {
+      ['step-method','step-proc','step-result'].forEach(s => {
+        document.getElementById(s).style.display = s===id ? 'block' : 'none';
+      });
+    }
+
+    function pay(outcome) {
+      step('step-proc');
+      setTimeout(() => {
+        step('step-result');
+        if (outcome === 'ok') {
+          const p = pts();
+          addPts(p);
+          const num = Math.floor(Math.random()*9000)+1000;
+          localStorage.setItem('rn_order', num);
+          clearCart();
+          document.getElementById('r-icon').textContent  = '✓';
+          document.getElementById('r-icon').style.color  = 'var(--ok)';
+          document.getElementById('r-title').textContent = 'Pagamento aprovado';
+          document.getElementById('r-msg').textContent   = `Pedido #${num} confirmado. Você ganhou ${p} pontos.`;
+          document.getElementById('r-actions').innerHTML = `<a href="tracking.html" class="btn btn-primary">Acompanhar pedido</a>`;
+        } else {
+          document.getElementById('r-icon').textContent  = '✕';
+          document.getElementById('r-icon').style.color  = 'var(--err)';
+          document.getElementById('r-title').textContent = 'Pagamento não aprovado';
+          document.getElementById('r-msg').textContent   = 'O serviço externo retornou uma negativa. Tente novamente ou escolha outro método.';
+          document.getElementById('r-actions').innerHTML = `
+            <button class="btn btn-primary" onclick="step('step-method')">Tentar novamente</button>
+            <a href="cart.html" class="btn btn-secondary" style="margin-left:.5rem">Voltar ao carrinho</a>`;
+        }
+      }, 2000);
+    }
+
+    step('step-method');
+  </script>
+</body>
+</html>

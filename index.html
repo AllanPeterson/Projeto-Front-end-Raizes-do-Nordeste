@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Raízes do Nordeste</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="hd"></div>
+
+  <section class="hero">
+    <div class="container">
+      <div class="hero-inner">
+        <h1>Sabores do Nordeste, do jeito que você gosta</h1>
+        <p>Tapiocas, cuscuz, cafés da manhã e muito mais — peça pelo app, totem ou balcão.</p>
+        <div class="hero-btns">
+          <a href="menu.html" class="btn btn-primary">Ver cardápio</a>
+          <a href="login.html" class="btn btn-secondary">Criar conta</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <div class="container">
+
+      <section class="section">
+        <p class="section-heading">Promoções da semana</p>
+        <div class="promo-list" id="promos"></div>
+      </section>
+
+      <section class="section">
+        <p class="section-heading">Mais pedidos hoje</p>
+        <div class="product-grid" id="featured"></div>
+        <div style="text-align:center;margin-top:1.25rem">
+          <a href="menu.html" class="btn btn-outline">Ver cardápio completo</a>
+        </div>
+      </section>
+
+      <section class="section">
+        <p class="section-heading">Como pedir</p>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.6rem">
+          <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:1rem">
+            <p style="font-size:0.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem">Aplicativo</p>
+            <p style="font-size:0.82rem">Pedidos antecipados e fidelidade</p>
+          </div>
+          <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:1rem">
+            <p style="font-size:0.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem">Totem</p>
+            <p style="font-size:0.82rem">Auto-atendimento nas lojas</p>
+          </div>
+          <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:1rem">
+            <p style="font-size:0.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem">Balcão</p>
+            <p style="font-size:0.82rem">Atendimento presencial</p>
+          </div>
+          <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:1rem">
+            <p style="font-size:0.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem">Pick-up</p>
+            <p style="font-size:0.82rem">Retire sem esperar na fila</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <div id="ft"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('hd').innerHTML = mkHeader('home');
+    document.getElementById('ft').innerHTML = mkFooter();
+
+    promotions.forEach(p => {
+      document.getElementById('promos').innerHTML += `
+        <div class="promo-item">
+          <div class="promo-text"><h3>${p.title}</h3><p>${p.desc}</p></div>
+          <span class="promo-tag">${p.tag}</span>
+        </div>`;
+    });
+
+    products.filter(p => p.units.includes(1)).slice(0, 4).forEach(p => {
+      document.getElementById('featured').innerHTML += `
+        <div class="product-card">
+          <div class="thumb" style="background:${p.color}">
+            <img src="${p.img}" alt="${p.name}" class="thumb-img" onerror="this.style.display='none'">
+            <span class="thumb-label">${p.category}</span>
+          </div>
+          <div class="product-body">
+            <p class="product-name">${p.name}</p>
+            <p class="product-desc">${p.description}</p>
+            ${p.seasonal ? '<span class="tag-seasonal">Sazonal</span>' : ''}
+            <p class="product-price">${fmtPrice(p.price)}</p>
+          </div>
+          <button class="btn btn-primary btn-sm btn-add" onclick="addItem(${p.id})">Adicionar</button>
+        </div>`;
+    });
+  </script>
+</body>
+</html>

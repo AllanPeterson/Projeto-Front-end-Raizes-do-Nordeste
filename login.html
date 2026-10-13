@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrar — Raízes do Nordeste</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="header-ph"></div>
+
+  <main style="padding:1.5rem 0 3rem">
+    <div class="container">
+      <div class="form-wrap">
+
+        <div class="tab-switch">
+          <button id="tab-login" class="active" onclick="showTab('login')">Entrar</button>
+          <button id="tab-reg"   onclick="showTab('register')">Criar conta</button>
+        </div>
+
+        <div id="msg-area"></div>
+
+        <!-- LOGIN -->
+        <form id="form-login" onsubmit="doLogin(event)">
+          <h2 class="form-title">Acesse sua conta</h2>
+
+          <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" id="l-email" placeholder="seu@email.com" required>
+          </div>
+          <div class="form-group">
+            <label>Senha</label>
+            <input type="password" id="l-pass" placeholder="Sua senha" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+
+          <p style="text-align:center;margin-top:1rem;font-size:0.82rem;color:var(--muted)">
+            Não tem conta? <a href="#" onclick="showTab('register')" style="color:var(--pri)">Criar conta grátis</a>
+          </p>
+        </form>
+
+        <!-- CADASTRO -->
+        <form id="form-reg" onsubmit="doRegister(event)" style="display:none">
+          <h2 class="form-title">Criar conta</h2>
+
+          <div class="form-group">
+            <label>Nome completo</label>
+            <input type="text" id="r-name" placeholder="João da Silva" required>
+          </div>
+          <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" id="r-email" placeholder="seu@email.com" required>
+          </div>
+          <div class="form-group">
+            <label>CPF</label>
+            <input type="text" id="r-cpf" placeholder="000.000.000-00" maxlength="14" oninput="maskCPF(this)">
+          </div>
+          <div class="form-group">
+            <label>Senha</label>
+            <input type="password" id="r-pass" placeholder="Mínimo 6 caracteres" required minlength="6">
+          </div>
+
+          <!-- LGPD -->
+          <div class="lgpd-notice" id="lgpd">
+            <strong>Privacidade e LGPD (Lei nº 13.709/2018)</strong><br><br>
+            Para criar sua conta coletamos: <strong>nome, e-mail e CPF</strong>.<br>
+            Esses dados são utilizados para autenticação, gestão de fidelidade e, com seu consentimento,
+            envio de promoções. Você pode solicitar a exclusão a qualquer momento em Minha Conta.
+            Nenhum dado é vendido a terceiros.
+          </div>
+
+          <div class="form-group">
+            <label class="check-label">
+              <input type="checkbox" id="consent-lgpd" required>
+              Concordo com a coleta dos meus dados conforme descrito acima (obrigatório)
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="check-label">
+              <input type="checkbox" id="consent-promo">
+              Desejo receber promoções por e-mail (opcional)
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Criar conta</button>
+
+          <p style="text-align:center;margin-top:1rem;font-size:0.82rem;color:var(--muted)">
+            Já tem conta? <a href="#" onclick="showTab('login')" style="color:var(--pri)">Entrar</a>
+          </p>
+        </form>
+
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-ph"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('header-ph').innerHTML = mkHeader('login');
+    document.getElementById('footer-ph').innerHTML  = mkFooter();
+
+    function showTab(t) {
+      const isLogin = t === 'login';
+      document.getElementById('form-login').style.display = isLogin ? '' : 'none';
+      document.getElementById('form-reg').style.display   = isLogin ? 'none' : '';
+      document.getElementById('tab-login').classList.toggle('active', isLogin);
+      document.getElementById('tab-reg').classList.toggle('active', !isLogin);
+      document.getElementById('msg-area').innerHTML = '';
+    }
+
+    function msg(text, type = 'error') {
+      document.getElementById('msg-area').innerHTML = `<div class="alert alert-${type}">${text}</div>`;
+    }
+
+    function doLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('l-email').value;
+      const pass  = document.getElementById('l-pass').value;
+      if (pass.length < 6) { msg('Senha deve ter ao menos 6 caracteres.'); return; }
+      login(getUser().name, email);
+      msg('Login realizado. Redirecionando...', 'success');
+      setTimeout(() => { window.location.href = 'index.html'; }, 1100);
+    }
+
+    function doRegister(e) {
+      e.preventDefault();
+      if (!document.getElementById('consent-lgpd').checked) {
+        msg('Para criar a conta é necessário aceitar os termos de privacidade.');
+        return;
+      }
+      const name  = document.getElementById('r-name').value;
+      const email = document.getElementById('r-email').value;
+      login(name, email);
+      msg('Conta criada com sucesso. Bem-vindo, ' + name.split(' ')[0] + '!', 'success');
+      setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+    }
+
+    function maskCPF(el) {
+      let v = el.value.replace(/\D/g, '');
+      v = v.replace(/(\d{3})(\d)/,   '$1.$2');
+      v = v.replace(/(\d{3})(\d)/,   '$1.$2');
+      v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      el.value = v;
+    }
+
+    if (loggedIn()) {
+      msg('Você já está conectado. <a href="index.html" style="color:var(--pri)">Ir para o início</a>', 'info');
+    }
+  </script>
+</body>
+</html>

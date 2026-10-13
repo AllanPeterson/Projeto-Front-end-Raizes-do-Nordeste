@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrinho — Raízes do Nordeste</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="hd"></div>
+
+  <main style="padding:1.25rem 0 3rem">
+    <div class="container">
+
+      <div class="page-title" style="margin-bottom:1rem"><h1>Carrinho</h1></div>
+
+      <div class="cart-layout">
+
+        <div>
+          <div id="list"></div>
+          <div id="empty" class="empty-state" style="display:none">
+            <h3>Carrinho vazio</h3>
+            <p>Adicione produtos no cardápio para continuar.</p>
+            <a href="menu.html" class="btn btn-primary" style="margin-top:1rem">Ver cardápio</a>
+          </div>
+        </div>
+
+        <div id="sum-col">
+          <div class="order-box">
+            <h3 style="margin-bottom:1rem">Resumo do pedido</h3>
+            <div class="form-group">
+              <label>Forma de retirada</label>
+              <select id="delivery">
+                <option value="pickup">Retirada no balcão</option>
+                <option value="totem">Totem de auto-atendimento</option>
+              </select>
+            </div>
+            <div id="rows"></div>
+            <div class="order-row total" id="row-total"><span>Total</span><span>R$ 0,00</span></div>
+            <div class="order-row pts"   id="row-pts"><span>Pontos a ganhar</span><span>0 pts</span></div>
+            <button class="btn btn-primary btn-block" style="margin-top:1rem" onclick="checkout()">Finalizar pedido</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <div id="ft"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('hd').innerHTML = mkHeader('cart');
+    document.getElementById('ft').innerHTML = mkFooter();
+
+    function draw() {
+      const cart = getCart();
+      const empty = document.getElementById('empty');
+      const sumCol = document.getElementById('sum-col');
+
+      if (!cart.length) {
+        document.getElementById('list').innerHTML = '';
+        empty.style.display = '';
+        sumCol.style.display = 'none';
+        return;
+      }
+      empty.style.display = 'none';
+      sumCol.style.display = '';
+
+      document.getElementById('list').innerHTML = cart.map(i => `
+        <div class="cart-item">
+          <div class="cart-thumb" style="background:${i.color || '#8D6E63'}">
+            <img src="${i.img || ''}" alt="${i.name}" class="cart-thumb-img" onerror="this.style.display='none'">
+          </div>
+          <div class="cart-item-info">
+            <p class="cart-item-name">${i.name}</p>
+            <p class="cart-item-price">${fmtPrice(i.price)}</p>
+          </div>
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="chg(${i.id},-1)">−</button>
+            <span class="qty-val">${i.qty}</span>
+            <button class="qty-btn" onclick="chg(${i.id},+1)">+</button>
+          </div>
+        </div>`).join('');
+
+      document.getElementById('rows').innerHTML = cart.map(i =>
+        `<div class="order-row"><span>${i.name} x${i.qty}</span><span>${fmtPrice(i.price*i.qty)}</span></div>`
+      ).join('');
+
+      document.getElementById('row-total').innerHTML = `<span>Total</span><span>${fmtPrice(total())}</span>`;
+      document.getElementById('row-pts').innerHTML   = `<span>Pontos a ganhar</span><span>${pts()} pts</span>`;
+    }
+
+    function chg(id, d) { setQty(id, d); draw(); }
+
+    function checkout() {
+      if (!loggedIn()) { toast('Faça login para finalizar o pedido'); setTimeout(() => location.href='login.html', 1000); return; }
+      localStorage.setItem('rn_delivery', document.getElementById('delivery').value);
+      location.href = 'payment.html';
+    }
+
+    draw();
+  </script>
+</body>
+</html>

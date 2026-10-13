@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fidelidade — Raízes do Nordeste</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="header-ph"></div>
+
+  <main style="padding:1.25rem 0 3rem">
+    <div class="container">
+
+      <div class="page-title" style="margin-bottom:1rem">
+        <h1>Programa de fidelidade</h1>
+        <p>Acumule pontos a cada pedido e troque por recompensas</p>
+      </div>
+
+      <!-- Card de pontos -->
+      <div class="loyalty-header" id="loyalty-card"></div>
+
+      <!-- Campanhas -->
+      <section class="section" style="padding-top:0">
+        <p class="section-heading">Campanhas ativas</p>
+        <div class="promo-list" id="promo-list"></div>
+      </section>
+
+      <!-- Recompensas -->
+      <section class="section" style="padding-top:0">
+        <p class="section-heading">Recompensas disponíveis</p>
+        <div id="rewards-list"></div>
+      </section>
+
+      <!-- Histórico -->
+      <section class="section" style="padding-top:0">
+        <p class="section-heading">Histórico de pontos</p>
+        <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:0 1rem" id="history-list"></div>
+      </section>
+
+      <!-- Aviso LGPD -->
+      <div class="lgpd-notice">
+        <strong>Privacidade no Programa de Fidelidade</strong><br>
+        Para participar coletamos dados de consumo e frequência de visitas, usados exclusivamente
+        para calcular pontos e personalizar benefícios. Conforme a LGPD (Lei nº 13.709/2018),
+        você pode solicitar exclusão ou portabilidade dos dados a qualquer momento em Minha Conta.
+      </div>
+
+    </div>
+  </main>
+
+  <div id="footer-ph"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('header-ph').innerHTML = mkHeader('loyalty');
+    document.getElementById('footer-ph').innerHTML  = mkFooter();
+
+    const user = getUser();
+    const pct  = Math.min(100, Math.round((user.points / user.nextLevel) * 100));
+
+    // Card de pontos
+    document.getElementById('loyalty-card').innerHTML = `
+      <div>
+        <p class="pts-label">${user.name.split(' ')[0]}</p>
+        <p class="pts-big">${user.points} <span style="font-size:1rem;font-weight:600;color:rgba(255,255,255,0.6)">pontos</span></p>
+        <p class="pts-level">Nível ${user.level}</p>
+        <div class="progress-bar" style="margin-top:0.85rem">
+          <div class="progress-fill" style="width:${pct}%"></div>
+        </div>
+        <p class="pts-label">${pct}% para o próximo nível (Prata)</p>
+      </div>
+      <div style="text-align:right">
+        <p class="pts-label">Próximo nível</p>
+        <p style="font-size:1.25rem;font-weight:700;color:var(--pri)">${user.nextLevel}</p>
+        <p class="pts-label">Faltam ${user.nextLevel - user.points} pts</p>
+      </div>
+    `;
+
+    // Campanhas
+    const promoList = document.getElementById('promo-list');
+    const loyaltyPromos = [
+      { title:'Pontos duplos nas sextas', desc:'Todo pedido na sexta-feira vale o dobro', tag:'2x Pontos' },
+      { title:'Aniversário especial',      desc:'Ganhe 200 pontos extras no seu mês',       tag:'Especial' },
+    ];
+    loyaltyPromos.forEach(p => {
+      promoList.innerHTML += `
+        <div class="promo-item">
+          <div class="promo-text"><h3>${p.title}</h3><p>${p.desc}</p></div>
+          <span class="promo-tag">${p.tag}</span>
+        </div>
+      `;
+    });
+
+    // Recompensas
+    const rewardsList = document.getElementById('rewards-list');
+    rewards.forEach(r => {
+      const canRedeem = user.points >= r.cost;
+      rewardsList.innerHTML += `
+        <div class="reward-item">
+          <div class="reward-thumb">${r.id}</div>
+          <div style="flex:1">
+            <p class="reward-name">${r.name}</p>
+            <p class="reward-cost">${r.cost} pontos</p>
+          </div>
+          <button class="btn btn-sm ${canRedeem ? 'btn-primary' : 'btn-secondary'}"
+            ${!canRedeem ? 'disabled' : `onclick="redeem(${r.id},${r.cost},'${r.name}')"`}>
+            ${canRedeem ? 'Resgatar' : 'Pontos insuficientes'}
+          </button>
+        </div>
+      `;
+    });
+
+    // Histórico
+    const histList = document.getElementById('history-list');
+    pointsHistory.forEach(h => {
+      histList.innerHTML += `
+        <div class="history-row">
+          <div>
+            <p style="font-size:0.875rem;font-weight:500">${h.desc}</p>
+            <p class="history-desc">${h.date}</p>
+          </div>
+          <span class="${h.points > 0 ? 'pts-positive' : 'pts-negative'}">
+            ${h.points > 0 ? '+' : ''}${h.points} pts
+          </span>
+        </div>
+      `;
+    });
+
+    function redeem(id, cost, name) {
+      const u = getUser();
+      if (u.points < cost) { toast('Pontos insuficientes'); return; }
+      u.points -= cost;
+      saveUser(u);
+      toast(name + ' resgatado com sucesso');
+      setTimeout(() => location.reload(), 1300);
+    }
+  </script>
+</body>
+</html>

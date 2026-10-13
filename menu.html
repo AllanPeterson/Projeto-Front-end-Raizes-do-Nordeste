@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cardápio — Raízes do Nordeste</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="hd"></div>
+
+  <div class="unit-bar">
+    <label for="unit-sel">Unidade</label>
+    <select id="unit-sel" onchange="onUnit()"></select>
+    <span class="unit-hours" id="unit-hrs"></span>
+  </div>
+
+  <nav class="category-tabs" id="tabs"></nav>
+
+  <div class="menu-layout">
+    <aside class="menu-sidebar" id="sidebar"></aside>
+
+    <main style="padding:1rem">
+      <div class="product-grid" id="grid"></div>
+      <div id="empty" class="empty-state" style="display:none">
+        <h3>Sem produtos disponíveis</h3>
+        <p>Tente outra unidade ou categoria.</p>
+      </div>
+    </main>
+  </div>
+
+  <div id="ft"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('hd').innerHTML = mkHeader('menu');
+    document.getElementById('ft').innerHTML = mkFooter();
+
+    let cat = 'Todos', unit = 1;
+
+    const sel = document.getElementById('unit-sel');
+    units.forEach(u => {
+      const o = document.createElement('option');
+      o.value = u.id; o.textContent = u.name;
+      sel.appendChild(o);
+    });
+    sel.value = '1';
+    document.getElementById('unit-hrs').textContent = units[0].hours;
+
+    function buildNav() {
+      ['tabs','sidebar'].forEach(id => {
+        document.getElementById(id).innerHTML = '';
+        categories.forEach(c => {
+          const btn = document.createElement('button');
+          btn.className = 'cat-tab' + (c === cat ? ' active' : '');
+          btn.textContent = c;
+          btn.onclick = () => { cat = c; buildNav(); render(); };
+          document.getElementById(id).appendChild(btn);
+        });
+      });
+    }
+
+    function onUnit() {
+      unit = parseInt(sel.value) || null;
+      const u = units.find(x => x.id === unit);
+      document.getElementById('unit-hrs').textContent = u ? u.hours : '';
+      render();
+    }
+
+    function render() {
+      let list = products;
+      if (unit) list = list.filter(p => p.units.includes(unit));
+      if (cat !== 'Todos') list = list.filter(p => p.category === cat);
+
+      const grid  = document.getElementById('grid');
+      const empty = document.getElementById('empty');
+
+      if (!list.length) { grid.innerHTML = ''; empty.style.display = ''; return; }
+      empty.style.display = 'none';
+
+      grid.innerHTML = list.map(p => `
+        <div class="product-card">
+          <div class="thumb" style="background:${p.color}">
+            <img src="${p.img}" alt="${p.name}" class="thumb-img" onerror="this.style.display='none'">
+            <span class="thumb-label">${p.category}</span>
+          </div>
+          <div class="product-body">
+            <p class="product-name">${p.name}</p>
+            <p class="product-desc">${p.description}</p>
+            ${p.seasonal ? '<span class="tag-seasonal">Sazonal</span>' : ''}
+            <p class="product-price">${fmtPrice(p.price)}</p>
+          </div>
+          <button class="btn btn-primary btn-sm btn-add" onclick="addItem(${p.id})">Adicionar</button>
+        </div>`).join('');
+    }
+
+    buildNav();
+    render();
+  </script>
+</body>
+</html>

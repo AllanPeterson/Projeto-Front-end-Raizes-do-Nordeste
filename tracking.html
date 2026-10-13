@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acompanhar Pedido — Raízes do Nordeste</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="header-ph"></div>
+
+  <main style="padding:1.25rem 0 3rem">
+    <div class="container" style="max-width:560px">
+
+      <div class="page-title" style="margin-bottom:1rem">
+        <h1>Acompanhar pedido</h1>
+      </div>
+
+      <!-- Número do pedido -->
+      <div class="order-badge">
+        <p style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.3rem">Número do pedido</p>
+        <p class="num" id="order-num">#----</p>
+      </div>
+
+      <!-- Estimativa -->
+      <div class="order-box" style="text-align:center;margin-bottom:1.25rem">
+        <p id="eta" style="font-weight:600;color:var(--pri)">Estimativa: 15–20 minutos</p>
+        <p style="font-size:0.78rem;color:var(--muted);margin-top:0.25rem">Você será avisado quando o pedido estiver pronto</p>
+      </div>
+
+      <!-- Timeline -->
+      <div class="timeline" id="timeline"></div>
+
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:1.5rem">
+        <a href="menu.html" class="btn btn-secondary">Novo pedido</a>
+        <a href="loyalty.html" class="btn btn-outline">Ver pontos</a>
+      </div>
+
+    </div>
+  </main>
+
+  <div id="footer-ph"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('header-ph').innerHTML = mkHeader('');
+    document.getElementById('footer-ph').innerHTML  = mkFooter();
+
+    const orderNum = localStorage.getItem('rn_order') || (Math.floor(Math.random()*9000)+1000);
+    document.getElementById('order-num').textContent = '#' + orderNum;
+
+    const steps = [
+      { label:'Pedido recebido',     desc:'Confirmado e enviado à cozinha' },
+      { label:'Em preparo',          desc:'Sua comida está sendo preparada' },
+      { label:'Pronto para retirada', desc:'Retire no balcão ou totem indicado' },
+      { label:'Retirado',            desc:'Bom apetite!' },
+    ];
+
+    let current = 0;
+    const tl = document.getElementById('timeline');
+
+    function renderTimeline() {
+      tl.innerHTML = steps.map((s, i) => {
+        let cls = '';
+        if (i < current)  cls = 'done';
+        if (i === current) cls = 'done active';
+        return `
+          <div class="tl-step ${cls}">
+            <div class="tl-dot">${i < current ? '✓' : i + 1}</div>
+            <div class="tl-info">
+              <h3>${s.label}</h3>
+              <p>${s.desc}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    renderTimeline();
+
+    const iv = setInterval(() => {
+      if (current < steps.length - 1) {
+        current++;
+        renderTimeline();
+        if (current === steps.length - 1) {
+          document.getElementById('eta').textContent = 'Pedido retirado com sucesso!';
+          document.getElementById('eta').style.color = 'var(--ok)';
+          clearInterval(iv);
+        }
+      }
+    }, 4000);
+  </script>
+</body>
+</html>
